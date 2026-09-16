@@ -1,1 +1,42 @@
+import math
+import numpy as np
 
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+def softmax_loop(z):
+    max_z = max(z)
+    # Subtract max_z to prevent overflow errors
+    exp_z = [math.exp(x - max_z) for x in z]
+    sum_exp_z = sum(exp_z)
+    return [x / sum_exp_z for x in exp_z]
+
+def softmax_np(z):
+    z = np.asarray(z)
+    max_z = np.max(z, axis=-1, keepdims=True)
+    exp_z = np.exp(z - max_z)
+    return exp_z / np.sum(exp_z, axis=-1, keepdims=True)
+
+def entropy(p):
+    p = np.asarray(p)
+    return -np.sum(p * np.log(np.where(p > 0, p, 1.0)))
+
+def cross_entropy(p, q):
+    p = np.asarray(p)
+    q = np.asarray(q)
+    # Use a small epsilon clip or mask to avoid log(0) errors
+    return -np.sum(p * np.log(np.where(q > 0, q, 1e-15)))
+
+def kl_divergence(p, q):
+    p = np.asarray(p)
+    q = np.asarray(q)
+    mask = p > 0
+    return np.sum(p[mask] * np.log(p[mask] / q[mask]))
+
+def focal_loss(p, q, gamma, alpha):
+    p = np.asarray(p)
+    q = np.asarray(q)
+    return -np.sum(
+        alpha * p * ((1 - q) ** gamma) *
+        np.log(np.where(q > 0, q, 1e-15))
+    )
